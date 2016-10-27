@@ -14,7 +14,7 @@ function console_log(str)
 // JavaScript is weird and this causes our object to be reloaded and re-registered.
 // Prevent this using global variable theEV3Device and EV3Connected that will only initialize to null the first time they are declared.
 // This fixes a Windows bug where it would not reconnect.
-
+var initCommand = [0xD0,0x01,0xD1,0x01,0xD2,0x01,0xD3,0x01,0xD4,0x01,0xD5,0x01,0xD6,0x01,0xD7,0x01,0xD8,0x09,0xDA,0x01,0xDB,0x01,0xDC,0x01,0xDD,0x01,0xDE,0x01,0xDF,0x01];
 var waitingCallbacks = waitingCallbacks || [[],[],[],[],[],[],[],[], []];
 var waitingQueries = waitingQueries || [];
 var global_sensor_result = global_sensor_result || [0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -745,9 +745,10 @@ function readFromColorSensor(portInt, modeCode, callback)
 
 function readThatBatteryLevel(callback)
 {
-    console_log("Going to read battery level");
+    console_log("Initializing Phiro");
     var portInt = 8; // bogus port number
-    UIRead(portInt, UIREAD_BATTERY, callback);
+	sendCommand(initCommand);
+    //UIRead(portInt, UIREAD_BATTERY, callback);
 }
 
 
@@ -1239,7 +1240,7 @@ function(ext)
      
      ext._deviceConnected = function(dev)
      {
-         console_log('_deviceConnected: ' + dev.id + ", " + dev.name);
+         console_log('_deviceConnected: ' + dev.id);
          if (EV3Connected)
          {
             console_log("Already EV3Connected. Ignoring");
@@ -1251,7 +1252,7 @@ function(ext)
          
          if ((dev.id.indexOf('') === 0 && dev.id.indexOf('-SerialPort') != -1) || dev.id.indexOf('COM') === 0)
          {
-         
+			console_log('potential dev: ' + dev.id);
              if (potentialEV3Devices.filter(function(e) { return e.id == dev.id; }).length == 0)
              {
                 potentialEV3Devices.push(dev);
