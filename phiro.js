@@ -1,8 +1,5 @@
 (function(ext) {
-    // Cleanup function when the extension is unloaded
-    ext._shutdown = function() {};
-
-    var potentialDevices = [];
+     var potentialDevices = [];
     ext._deviceConnected = function(dev) {
         potentialDevices.push(dev);
         console.log("Dev after push : " + dev.id);
@@ -25,7 +22,10 @@
             }
         );
     }
-    // Status reporting code
+      // Cleanup function when the extension is unloaded
+    ext._shutdown = function() {};
+
+     // Status reporting code
     // Use this to report missing hardware, plugin or unsupported browser
     ext._getStatus = function() {
         return {status: 2, msg: 'Ready'};
