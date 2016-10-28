@@ -12,7 +12,7 @@ function console_log(str)
 }
 
 // JavaScript is weird and this causes our object to be reloaded and re-registered.
-// Prevent this using global variable phiroDevice and EV3Connected that will only initialize to null the first time they are declared.
+// Prevent this using global variable phiroDevice and phiroConnected that will only initialize to null the first time they are declared.
 // This fixes a Windows bug where it would not reconnect.
 var initCommand = [0xD0,0x01,0xD1,0x01,0xD2,0x01,0xD3,0x01,0xD4,0x01,0xD5,0x01,0xD6,0x01,0xD7,0x01,0xD8,0x09,0xDA,0x01,0xDB,0x01,0xDC,0x01,0xDD,0x01,0xDE,0x01,0xDF,0x01];
 var waitingCallbacks = waitingCallbacks || [[],[],[],[],[],[],[],[], []];
@@ -119,7 +119,7 @@ var lastCommandWeWereTrying = null;
 
 function startupBatteryCheckCallback(result)
 {
-    console_log(timeStamp() + ": got battery level at connect: " + result);
+    console_log(timeStamp() + ": got reply from Phiro: " + result);
     
     weConnected();
     
@@ -745,9 +745,10 @@ function readFromColorSensor(portInt, modeCode, callback)
 
 function readThatBatteryLevel(callback)
 {
-    console_log("Initializing Phiro");
-    var portInt = 8; // bogus port number
-	sendCommand(initCommand);
+    
+    
+    var portInt = 32; // bogus port number
+    sendCommand(initCommand);
     //UIRead(portInt, UIREAD_BATTERY, callback);
 }
 
@@ -1060,7 +1061,7 @@ function readBatteryLevel(callback)
 var DEBUG_NO_EV3 = false;
 var phiroDevice = phiroDevice || null;
 var phiroScratchAlreadyLoaded = phiroScratchAlreadyLoaded || false;
-var EV3Connected = EV3Connected || false;
+var phiroConnected = phiroConnected || false;
 var potentialEV3Devices = potentialEV3Devices || [];
 var waitingForInitialConnection = waitingForInitialConnection || false;
 var potentialDevices = potentialDevices || []; // copy of the list
@@ -1070,25 +1071,25 @@ var connectionTimeout = connectionTimeout || null;
 
 function connectingOrConnected()
 {
-    return (EV3Connected || connecting);
+    return (phiroConnected || connecting);
 }
 
 function weConnected()
 {
     waitingForInitialConnection = false;
     
-    EV3Connected = true;
+    phiroConnected = true;
     connecting = false;
 }
 
 function notConnected()
 {
-    return (!phiroDevice || !EV3Connected);
+    return (!phiroDevice || !phiroConnected);
 }
 
 function disconnected()
 {
-    EV3Connected = false;
+    phiroConnected = false;
     
     //    alert("The connection to the brick was lost. Check your brick and refresh the page to reconnect. (Don't forget to save your project first!)");
     /* if (r == true) {
@@ -1102,7 +1103,7 @@ function disconnected()
 
 function sendCommand(commandArray)
 {
-    if ((EV3Connected || connecting) && phiroDevice)
+    if ((phiroConnected || connecting) && phiroDevice)
     {
         console_log("sending: " + createHexString(commandArray));
         
@@ -1138,16 +1139,17 @@ function tryToConnect()
     phiroDevice.open({ stopBits: 0, bitRate: 57600, ctsFlowControl: 0});
     console_log(': Attempting connection with ' + phiroDevice.id);
     phiroDevice.set_receive_handler(receive_handler);
-    console_log("Initializing...");
+    console_log("Initializing Phiro");
+    
     for(i = 0;i<31;i++ )
     {
         //console_log ("Sending : " + createHexString(initCommand[i]));
         phiroDevice.send(initCommand[i]);
     }
     console_log ("Sending : " + createHexString(initCommand));
-    
     connecting = true;
-    //testTheConnection(startupBatteryCheckCallback);
+    phiroDevice.read(startupBatteryCheckCallback);
+//testTheConnection(startupBatteryCheckCallback);
     waitingForInitialConnection = true;
     connectionTimeout = setTimeout(connectionTimeOutCallback, 10000);
 }
@@ -1208,7 +1210,7 @@ function tryAllDevices()
 
 function checkConnected()
 {
-    if (!EV3Connected && !connecting)
+    if (!phiroConnected && !connecting)
     {
         console_log("executeQueryQueue called with no connection");
         if (phiroDevice && !connecting)
@@ -1234,7 +1236,7 @@ function(ext)
      
      ext._getStatus = function()
      {
-         if (!EV3Connected)
+         if (!phiroConnected)
             return { status:1, msg:'Disconnected' };
          else
             return { status:2, msg:'Connected' };
@@ -1249,9 +1251,9 @@ function(ext)
      ext._deviceConnected = function(dev)
      {
         // console_log('_deviceConnected: ' + dev.id);
-         if (EV3Connected)
+         if (phiroConnected)
          {
-            console_log("Already EV3Connected. Ignoring");
+            console_log("Already phiroConnected. Ignoring");
          }
          // brick's serial port must be named like tty.serialBrick7-SerialPort
          // this is how 10.10 is naming it automatically, the brick name being serialBrick7
@@ -1280,7 +1282,7 @@ function(ext)
          phiroDevice.close();
          if (poller)
          clearInterval(poller);
-         EV3Connected = false;
+         phiroConnected = false;
          phiroDevice = null;
        */  
      };
