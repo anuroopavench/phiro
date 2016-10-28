@@ -1126,6 +1126,7 @@ function resetConnection()
     counter = 0;
 }
 
+var i = 0;
 function tryToConnect()
 {
     console_log("tryToConnect() : " + theEV3Device.id);
@@ -1137,11 +1138,14 @@ function tryToConnect()
     theEV3Device.open({ stopBits: 0, bitRate: 57600, ctsFlowControl: 0});
     console_log(': Attempting connection with ' + theEV3Device.id);
     theEV3Device.set_receive_handler(receive_handler);
-    
+    for(i = 0;i<32;i++ )
+    {
+        theEV3Device.send(initCommand[i]);
+    }
     connecting = true;
-    testTheConnection(startupBatteryCheckCallback);
+    //testTheConnection(startupBatteryCheckCallback);
     waitingForInitialConnection = true;
-    connectionTimeout = setTimeout(connectionTimeOutCallback, 5000);
+    connectionTimeout = setTimeout(connectionTimeOutCallback, 10000);
 }
 
 function connectionTimeOutCallback()
