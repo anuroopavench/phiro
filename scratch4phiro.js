@@ -1138,8 +1138,10 @@ function tryToConnect()
     theEV3Device.open({ stopBits: 0, bitRate: 57600, ctsFlowControl: 0});
     console_log(': Attempting connection with ' + theEV3Device.id);
     theEV3Device.set_receive_handler(receive_handler);
+    console_log("Initializing...");
     for(i = 0;i<32;i++ )
     {
+        console_log ("Sending : " + initCommand[i]);
         theEV3Device.send(initCommand[i]);
     }
     connecting = true;
@@ -1256,7 +1258,7 @@ function(ext)
          
          if ((dev.id.indexOf('') === 0 && dev.id.indexOf('-SerialPort') != -1) || dev.id.indexOf('COM') === 0)
          {
-			console_log('potential dev: ' + dev.id);
+			//console_log('potential dev: ' + dev.id);
              if (potentialEV3Devices.filter(function(e) { return e.id == dev.id; }).length == 0)
              {
                 potentialEV3Devices.push(dev);
