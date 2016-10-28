@@ -1149,8 +1149,9 @@ function tryToConnect()
     console_log ("Sending : " + createHexString(initCommand));
     connecting = true;
     
-//testTheConnection(startupBatteryCheckCallback);
+    //testTheConnection(startupBatteryCheckCallback);
     weConnected();
+    UIRead(32, UIREAD_BATTERY, startupBatteryCheckCallback);
     waitingForInitialConnection = true;
     connectionTimeout = setTimeout(connectionTimeOutCallback, 20000);
 }
