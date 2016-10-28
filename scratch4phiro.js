@@ -1272,15 +1272,16 @@ function(ext)
      
      ext._shutdown = function()
      {
+         theEV3Device.close();
          console_log('SHUTDOWN: ' + ((theEV3Device) ? theEV3Device.id : "null"));
         
-         if (theEV3Device)
+     /*    if (theEV3Device)
          theEV3Device.close();
          if (poller)
          clearInterval(poller);
          EV3Connected = false;
          theEV3Device = null;
-         
+       */  
      };
      
      ext.startMotors = function(which, speed)
