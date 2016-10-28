@@ -1297,6 +1297,7 @@ function(ext)
          clearInterval(poller);
          phiroConnected = false;
          phiroDevice = null;
+         console.log("Disconnected..!")
     };
 
     ext.left_red = function() {
