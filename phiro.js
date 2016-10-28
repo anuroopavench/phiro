@@ -1,4 +1,5 @@
 (function(ext) {
+    console.log("Avench");
      var potentialDevices = [];
     ext._deviceConnected = function(dev) {
         potentialDevices.push(dev);
@@ -126,4 +127,5 @@
 
     // Register the extension
     ScratchExtensions.register('PHIRO', descriptor, ext);
+    console.log ("registerd: Phiro");
 })({});
