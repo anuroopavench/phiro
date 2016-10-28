@@ -1250,7 +1250,7 @@ function(ext)
      
      ext._deviceConnected = function(dev)
      {
-        // console_log('_deviceConnected: ' + dev.id);
+         console_log('_deviceConnected: ' + dev.id);
          if (phiroConnected)
          {
             console_log("Already phiroConnected. Ignoring");
