@@ -1150,6 +1150,7 @@ function tryToConnect()
     connecting = true;
     
 //testTheConnection(startupBatteryCheckCallback);
+    weConnected();
     waitingForInitialConnection = true;
     connectionTimeout = setTimeout(connectionTimeOutCallback, 20000);
 }
