@@ -1148,10 +1148,10 @@ function tryToConnect()
     }
     console_log ("Sending : " + createHexString(initCommand));
     connecting = true;
-    phiroDevice.read(startupBatteryCheckCallback);
+    
 //testTheConnection(startupBatteryCheckCallback);
     waitingForInitialConnection = true;
-    connectionTimeout = setTimeout(connectionTimeOutCallback, 10000);
+    connectionTimeout = setTimeout(connectionTimeOutCallback, 20000);
 }
 
 function connectionTimeOutCallback()
