@@ -12,7 +12,7 @@ function console_log(str)
 }
 
 // JavaScript is weird and this causes our object to be reloaded and re-registered.
-// Prevent this using global variable theEV3Device and EV3Connected that will only initialize to null the first time they are declared.
+// Prevent this using global variable phiroDevice and EV3Connected that will only initialize to null the first time they are declared.
 // This fixes a Windows bug where it would not reconnect.
 var initCommand = [0xD0,0x01,0xD1,0x01,0xD2,0x01,0xD3,0x01,0xD4,0x01,0xD5,0x01,0xD6,0x01,0xD7,0x01,0xD8,0x09,0xDA,0x01,0xDB,0x01,0xDC,0x01,0xDD,0x01,0xDE,0x01,0xDF,0x01];
 var waitingCallbacks = waitingCallbacks || [[],[],[],[],[],[],[],[], []];
@@ -1058,8 +1058,8 @@ function readBatteryLevel(callback)
 // ScratchX specific stuff
 
 var DEBUG_NO_EV3 = false;
-var theEV3Device = theEV3Device || null;
-var EV3ScratchAlreadyLoaded = EV3ScratchAlreadyLoaded || false;
+var phiroDevice = phiroDevice || null;
+var phiroScratchAlreadyLoaded = phiroScratchAlreadyLoaded || false;
 var EV3Connected = EV3Connected || false;
 var potentialEV3Devices = potentialEV3Devices || [];
 var waitingForInitialConnection = waitingForInitialConnection || false;
@@ -1083,7 +1083,7 @@ function weConnected()
 
 function notConnected()
 {
-    return (!theEV3Device || !EV3Connected);
+    return (!phiroDevice || !EV3Connected);
 }
 
 function disconnected()
@@ -1102,11 +1102,11 @@ function disconnected()
 
 function sendCommand(commandArray)
 {
-    if ((EV3Connected || connecting) && theEV3Device)
+    if ((EV3Connected || connecting) && phiroDevice)
     {
         console_log("sending: " + createHexString(commandArray));
         
-        theEV3Device.send(commandArray.buffer);
+        phiroDevice.send(commandArray.buffer);
     }
     else
     {
@@ -1129,21 +1129,23 @@ function resetConnection()
 var i = 0;
 function tryToConnect()
 {
-    console_log("tryToConnect() : " + theEV3Device.id);
+    console_log("tryToConnect() : " + phiroDevice.id);
     
     //lastCommandWeWereTrying = waitingQueries.pop();
 
    // resetConnection();
     
-    theEV3Device.open({ stopBits: 0, bitRate: 57600, ctsFlowControl: 0});
-    console_log(': Attempting connection with ' + theEV3Device.id);
-    theEV3Device.set_receive_handler(receive_handler);
+    phiroDevice.open({ stopBits: 0, bitRate: 57600, ctsFlowControl: 0});
+    console_log(': Attempting connection with ' + phiroDevice.id);
+    phiroDevice.set_receive_handler(receive_handler);
     console_log("Initializing...");
-    for(i = 0;i<32;i++ )
+    for(i = 0;i<31;i++ )
     {
-        console_log ("Sending : " + initCommand[i]);
-        theEV3Device.send(initCommand[i]);
+        //console_log ("Sending : " + createHexString(initCommand[i]));
+        phiroDevice.send(initCommand[i]);
     }
+    console_log ("Sending : " + createHexString(initCommand));
+    
     connecting = true;
     //testTheConnection(startupBatteryCheckCallback);
     waitingForInitialConnection = true;
@@ -1168,7 +1170,7 @@ function connectionTimeOutCallback()
              // do nothing
              }
              */
-            theEV3Device = null;
+            phiroDevice = null;
             
             // xxx at this point, we might have an outstanding query with a callback we need to call...
         }
@@ -1188,7 +1190,7 @@ function tryNextDevice()
     if (!device)
         return;
     
-    theEV3Device = device;
+    phiroDevice = device;
     
     if (!DEBUG_NO_EV3)
     {
@@ -1209,7 +1211,7 @@ function checkConnected()
     if (!EV3Connected && !connecting)
     {
         console_log("executeQueryQueue called with no connection");
-        if (theEV3Device && !connecting)
+        if (phiroDevice && !connecting)
         {
             tryToConnect(); // try to connect
         }
@@ -1272,140 +1274,115 @@ function(ext)
      
      ext._shutdown = function()
      {
-         theEV3Device.close();
-         console_log('SHUTDOWN: ' + ((theEV3Device) ? theEV3Device.id : "null"));
+        console_log('SHUTDOWN: ' + ((phiroDevice) ? phiroDevice.id : "null"));
         
-     /*    if (theEV3Device)
-         theEV3Device.close();
+     /*    if (phiroDevice)
+         phiroDevice.close();
          if (poller)
          clearInterval(poller);
          EV3Connected = false;
-         theEV3Device = null;
+         phiroDevice = null;
        */  
      };
      
-     ext.startMotors = function(which, speed)
-     {
-        startMotors(which, speed);
-     }
-     
-     ext.motorDegrees = function(which, speed, degrees, howStop)
-     {
-        motorDegrees(which, speed, degrees, howStop);
-     }
-     
-     ext.playTone = function(tone, duration, callback)
-     {
-        playTone(tone, duration, callback);
-     }
-     
-     ext.playFreq = function(freq, duration, callback)
-     {
-        playFreq(freq, duration, callback);
-     }
-     
-     ext.allMotorsOff = function(how)
-     {
-        allMotorsOff(how)
-     }
-     
-     ext.steeringControl = function(ports, what, duration, callback)
-     {
-        steeringControl(ports, what, duration, callback)
-     }
-     
-     ext.whenButtonPressed = function(port)
-     {
-        return whenButtonPressed(port);
-     }
-     
-     ext.whenRemoteButtonPressed = function(IRbutton, port)
-     {
-        return whenRemoteButtonPressed(IRbutton, port);
-     }
-     
-     ext.readTouchSensorPort = function(port, callback)
-     {
-        readTouchSensorPort(port, callback);
-     }
-     
-     ext.readColorSensorPort = function(port, mode, callback)
-     {
-        readColorSensorPort(port, mode, callback);
-     }
-     
-     
-     ext.waitUntilDarkLinePort = function(port, callback)
-     {
-        waitUntilDarkLinePort(port, callback);
-     }
-     
-     ext.readGyroPort = function(mode, port, callback)
-     {
-        readGyroPort(mode, port, callback);
-     }
-     
-     ext.readDistanceSensorPort = function(port, callback)
-     {
-        readDistanceSensorPort(port, callback);
-     }
-     
-     ext.readRemoteButtonPort = function(port, callback)
-     {
-        readRemoteButtonPort(port, callback);
-     }
-     
-     ext.readFromMotor = function(mmode, which, callback)
-     {
-        readFromMotor(mmode, which, callback);
-     }
-     
-     ext.readBatteryLevel = function(callback)
-     {
-        readBatteryLevel(callback);
-     }
-     
-     // Block and block menu descriptions
-     var descriptor = {
-     blocks: [
-              ['w', 'drive %m.dualMotors %m.turnStyle %n seconds',         'steeringControl',  'B+C', 'forward', 3],
-              [' ', 'start motor %m.whichMotorPort speed %n',              'startMotors',      'B+C', 100],
-              [' ', 'rotate motor %m.whichMotorPort speed %n by %n degrees then %m.brakeCoast',              'motorDegrees',      'A', 100, 360, 'brake'],
-              [' ', 'stop all motors %m.brakeCoast',                       'allMotorsOff',     'brake'],
-              ['h', 'when button pressed on port %m.whichInputPort',       'whenButtonPressed','1'],
-              ['h', 'when IR remote %m.buttons pressed port %m.whichInputPort', 'whenRemoteButtonPressed','Top Left', '1'],
-              ['R', 'button pressed %m.whichInputPort',                    'readTouchSensorPort',   '1'],
-              ['w', 'play note %m.note duration %n ms',                    'playTone',         'C5', 500],
-              ['w', 'play frequency %n duration %n ms',                    'playFreq',         '262', 500],
-              ['R', 'light sensor %m.whichInputPort %m.lightSensorMode',   'readColorSensorPort',   '1', 'color'],
-              //    ['w', 'wait until light sensor %m.whichInputPort detects black line',   'waitUntilDarkLinePort',   '1'],
-              ['R', 'measure distance %m.whichInputPort',                  'readDistanceSensorPort',   '1'],
-              ['R', 'remote button %m.whichInputPort',                     'readRemoteButtonPort',   '1'],
-              // ['R', 'gyro  %m.gyroMode %m.whichInputPort',                 'readGyroPort',  'angle', '1'],
-              ['R', 'motor %m.motorInputMode %m.whichMotorIndividual',     'readFromMotor',   'position', 'A'],
-              
-              //    ['R', 'battery level',   'readBatteryLevel'],
-              //  [' ', 'reconnect', 'reconnectToDevice'],
-              ],
-     menus: {
-     whichMotorPort:   ['A', 'B', 'C', 'D', 'A+D', 'B+C'],
-     whichMotorIndividual:   ['A', 'B', 'C', 'D'],
-     dualMotors:       ['A+D', 'B+C'],
-     turnStyle:        ['forward', 'reverse', 'right', 'left'],
-     brakeCoast:       ['brake', 'coast'],
-     lightSensorMode:  ['reflected', 'ambient', 'color'],
-     motorInputMode: ['position', 'speed'],
-     gyroMode: ['angle', 'rate'],
-     note:["C4","D4","E4","F4","G4","A4","B4","C5","D5","E5","F5","G5","A5","B5","C6","D6","E6","F6","G6","A6","B6","C#4","D#4","F#4","G#4","A#4","C#5","D#5","F#5","G#5","A#5","C#6","D#6","F#6","G#6","A#6"],
-     whichInputPort: ['1', '2', '3', '4'],
-     buttons: IRbuttonNames,
-     },
-     };
-     
+     ext.disconnect_phiro = function() {
+        // Code that gets executed when the block is run
+        phiroDevice.close();
+    };
+
+    ext.left_red = function() {
+       //Code to turn on the led on the left to red
+    };
+
+    ext.left_green = function() {
+       //Code to turn on the led on the left to green
+    };
+
+    ext.left_blue = function() {
+       //Code to turn on the led on the left to blue
+    };
+
+    ext.right_red = function() {
+       //Code to turn on the led on the right to red
+    };
+
+    ext.right_green = function() {
+       //Code to turn on the led on the right to green
+    };
+
+    ext.right_blue = function() {
+       //Code to turn on the led on the right to blue
+    };
+
+    ext.left_motor_forward = function() {
+       //Code to turn on the motor on the left side to spin forward
+    };
+
+    ext.left_motor_backward = function() {
+       //Code to turn on the motor on the left side to spin backward
+    };
+
+    ext.right_motor_forward = function() {
+       //Code to turn on the motor on the right side to spin forward
+    };
+
+    ext.right_motor_backward = function() {
+       //Code to turn on the motor on the right side to spin backward
+    };
+
+    ext.side_right_sensor = function() {
+       //Code to read from the sensor on the right side
+    };
+
+    ext.front_right_sensor = function() {
+       //Code to read from the sensor on the front of the right side
+    };
+
+    ext.bottom_right_sensor = function() {
+       //Code to read from the sensor on the bottom of the right side
+    };
+
+    ext.side_left_sensor = function() {
+       //Code to read from the sensor on the left side
+    };
+
+    ext.front_left_sensor = function() {
+       //Code to read from the sensor on the front of the left side
+    };
+
+    ext.bottom_left_sensor = function() {
+       //Code to read from the sensor on the bottom of the left side
+    };
+
+
+    // Block and block menu descriptions
+    var descriptor = {
+        blocks: [
+            // Block type, block name, function name, input_value
+            [' ', 'Disconnect_PHIRO %n', 'disconnect_phiro', 255],
+            [' ', 'Left_RED %n', 'left_red', 255],
+            [' ', 'Left_GREEN %n', 'left_green', 255],
+            [' ', 'Left_BLUE %n', 'left_blue', 255],
+            [' ', 'Right_RED %n', 'right_red', 255],
+            [' ', 'Right_GREEN %n', 'right_green', 255],
+            [' ', 'Right_BLUE %n', 'right_blue', 255],
+            [' ', 'LeftMotorForward %n', 'left_motor_forward', 255],
+            [' ', 'LeftMotorBackward %n', 'left_motor_backward', 255],
+            [' ', 'RightMotorForward %n', 'right_motor_forward', 255],
+            [' ', 'RightMotorBackward %n', 'right_motor_backward', 255],
+            ['r', 'Side_Right_Sensor', 'side_right_sensor'],
+            ['r', 'Front_Right_Sensor', 'front_right_sensor'],
+            ['r', 'Bottom_Right_Sensor', 'bottom_right_sensor'],
+            ['r', 'Bottom_Left_Sensor', 'bottom_left_sensor'],
+            ['r', 'Front_Left_Sensor', 'front_left_sensor'],
+            ['r', 'Side_Left_Sensor', 'side_left_sensor']
+        ]
+    };
+
      var serial_info = {type: 'serial'};
      ScratchExtensions.register('Phiro', descriptor, ext, serial_info);
-     console_log(' registered extension. PhiroDevice:' + theEV3Device);
+     console_log(' registered extension. PhiroDevice:' + phiroDevice);
      
-     console_log("PhiroScratchAlreadyLoaded: " + EV3ScratchAlreadyLoaded);
-     EV3ScratchAlreadyLoaded = true;
+     console_log("PhiroScratchAlreadyLoaded: " + phiroScratchAlreadyLoaded);
+     phiroScratchAlreadyLoaded = true;
 })({});
