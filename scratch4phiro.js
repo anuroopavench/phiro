@@ -1128,12 +1128,12 @@ function resetConnection()
 
 function tryToConnect()
 {
-    console_log("tryToConnect()");
+    console_log("tryToConnect() : " + theEV3Device.id);
     
-    lastCommandWeWereTrying = waitingQueries.pop();
+    //lastCommandWeWereTrying = waitingQueries.pop();
 
    // resetConnection();
-    console_log("Dev Info: " +theEV3Device.getOwnPropertyNames());
+    
     theEV3Device.open({ stopBits: 0, bitRate: 57600, ctsFlowControl: 0});
     console_log(': Attempting connection with ' + theEV3Device.id);
     theEV3Device.set_receive_handler(receive_handler);
@@ -1240,7 +1240,7 @@ function(ext)
      
      ext._deviceConnected = function(dev)
      {
-         console_log('_deviceConnected: ' + dev.id);
+        // console_log('_deviceConnected: ' + dev.id);
          if (EV3Connected)
          {
             console_log("Already EV3Connected. Ignoring");
