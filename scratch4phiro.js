@@ -1132,8 +1132,8 @@ function tryToConnect()
     
     lastCommandWeWereTrying = waitingQueries.pop();
 
-    resetConnection();
-    
+   // resetConnection();
+    console_log("Dev Info: " +theEV3Device.getOwnPropertyNames());
     theEV3Device.open({ stopBits: 0, bitRate: 57600, ctsFlowControl: 0});
     console_log(': Attempting connection with ' + theEV3Device.id);
     theEV3Device.set_receive_handler(receive_handler);
