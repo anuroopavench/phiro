@@ -1289,7 +1289,12 @@ function(ext)
      
      ext.disconnect_phiro = function() {
         // Code that gets executed when the block is run
-        phiroDevice.close();
+        if (phiroDevice)
+         phiroDevice.close();
+         if (poller)
+         clearInterval(poller);
+         phiroConnected = false;
+         phiroDevice = null;
     };
 
     ext.left_red = function() {
