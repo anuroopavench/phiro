@@ -2,6 +2,29 @@
     // Cleanup function when the extension is unloaded
     ext._shutdown = function() {};
 
+    var potentialDevices = [];
+    ext._deviceConnected = function(dev) {
+        potentialDevices.push(dev);
+        console.log("Dev after push : " + dev.id);
+        if (!device) {
+            tryNextDevice();
+        }
+    }
+    function tryNextDevice() {
+        // If potentialDevices is empty, device will be undefined.
+        // That will get us back here next time a device is connected.
+        device = potentialDevices.shift();
+        if (!device) return;
+        console.log("Dev after shift : " + device.id);
+        
+        device.open({ stopBits: 0, bitRate: 57600, ctsFlowControl: 0 });
+        device.set_receive_handler(function(data) {
+            console.log('Received: ' + data.byteLength);
+            //    processData();
+                //device.send(pingCmd.buffer);
+            }
+        );
+    }
     // Status reporting code
     // Use this to report missing hardware, plugin or unsupported browser
     ext._getStatus = function() {
